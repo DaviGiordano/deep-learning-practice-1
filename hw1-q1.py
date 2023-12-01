@@ -74,13 +74,41 @@ class MLP(object):
     # in main().
     def __init__(self, n_classes, n_features, hidden_size):
         # Initialize an MLP with a single hidden layer.
-        raise NotImplementedError
+        self.mu_W = 0.1
+        self.sigma_W = 0.01
+        
+        # Separating the weights for simplicity, since this MLP is restricted to one hidden layer 
+        self.W_1 = np.random.normal(self.mu_W, self.sigma_W, (n_features,hidden_size))
+        self.b_1 = np.random.normal(self.mu_W, self.sigma_W, hidden_size)
+        self.W_2 = np.random.normal(self.mu_W, self.sigma_W, (hidden_size,n_classes))
+        self.b_2 = np.random.normal(self.mu_W, self.sigma_W, n_classes)
 
     def predict(self, X):
+        """
+        Input:
+        X test examples (n_examples x n_features)
+        
+        Ouput:
+        Predicted class y_hat of each training example (n_examples)
+        """
         # Compute the forward pass of the network. At prediction time, there is
         # no need to save the values of hidden nodes, whereas this is required
         # at training time.
-        raise NotImplementedError
+        y_hat = []
+        for xi in X: # for each test object. There is probably a parallelized way of doing this
+            h0 = xi
+            
+            z1 = self.W_1.dot(h0) + self.b_1 # I don't know if this works as intended
+            h1 = np.maximum(0, z1)
+            
+            z2 = self.W_2.dot(h1) + self.b_2
+            p = np.exp(z2) / sum(np.exp(z2))
+
+            y_hat.append(np.argmax(p))
+        
+        return np.array(y_hat)
+
+
 
     def evaluate(self, X, y):
         """
@@ -97,8 +125,39 @@ class MLP(object):
         """
         Dont forget to return the loss of the epoch.
         """
-        raise NotImplementedError
 
+        y_hat = []
+        for xi,yi in zip(X, y): # for each test object. There is probably a parallelized way of doing this
+            h0 = xi
+            
+            z1 = self.W_1.T.dot(h0) + self.b_1 # I don't know if this works as intended
+            h1 = np.maximum(0, z1)
+            
+            z2 = self.W_2.T.dot(h1) + self.b_2
+            p = np.exp(z2) / sum(np.exp(z2))
+
+            loss = -y.dot(np.log(p))
+
+            
+            grad_z2 = p - yi
+            
+            grad_W2 = grad_z2[:, None].dot(h1[:, None].T)
+            grad_b2 = grad_z2
+            
+            # !! The equation for the hidden layer must change. Here I'm using as if the activation function was the tanh
+
+            grad_h1 = self.W_2.T.dot(grad_z2)
+            grad_z1 = grad_h1 * (1-h1**2)
+
+            grad_W1 = grad_z1[:, None].dot(h0[:, None].T)
+            grad_b1 = grad_z1
+
+            self.W1 -= learning_rate*grad_W1
+            self.b1 -= learning_rate*grad_b1
+            self.W2 -= learning_rate*grad_W2
+            self.b2 -= learning_rate*grad_b2
+        
+        return loss # Returns last loss
 
 def plot(epochs, train_accs, val_accs):
     plt.xlabel('Epoch')
