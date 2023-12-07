@@ -8,6 +8,7 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
 from matplotlib import pyplot as plt
+import time
 
 import utils
 
@@ -19,32 +20,15 @@ class LogisticRegression(nn.Module):
         """
         n_classes (int)
         n_features (int)
-
-        The __init__ should be used to declare what kind of layers and other
-        parameters the module has. For example, a logistic regression module
-        has a weight matrix and bias vector. For an idea of how to use
-        pytorch to make weights and biases, have a look at
-        https://pytorch.org/docs/stable/nn.html
         """
         super().__init__()
-        # In a pytorch module, the declarations of layers needs to come after
-        # the super __init__ line, otherwise the magic doesn't work.
+        self.linear = nn.Linear(n_features, n_classes)
 
     def forward(self, x, **kwargs):
         """
         x (batch_size x n_features): a batch of training examples
-
-        Every subclass of nn.Module needs to have a forward() method. forward()
-        describes how the module computes the forward pass. In a log-lineear
-        model like this, for example, forward() needs to compute the logits
-        y = Wx + b, and return y (you don't need to worry about taking the
-        softmax of y because nn.CrossEntropyLoss does that for you).
-
-        One nice thing about pytorch is that you only need to define the
-        forward pass -- this is enough for it to figure out how to do the
-        backward pass.
         """
-        raise NotImplementedError
+        return self.linear(x)
 
 
 # Q2.2
@@ -59,45 +43,61 @@ class FeedforwardNetwork(nn.Module):
         layers (int)
         activation_type (str)
         dropout (float): dropout probability
-
-        As in logistic regression, the __init__ here defines a bunch of
-        attributes that each FeedforwardNetwork instance has. Note that nn
-        includes modules for several activation functions and dropout as well.
         """
         super().__init__()
-        # Implement me!
-        raise NotImplementedError
+
+        # Define the activation function
+        if activation_type == 'relu':
+            activation = nn.ReLU()
+        else:
+            activation = nn.Tanh()
+
+        # Create a list of modules
+        modules = []
+        in_features = n_features
+
+        # Add hidden layers
+        for _ in range(layers):
+            modules.append(nn.Linear(in_features, hidden_size))
+            modules.append(activation)
+            modules.append(nn.Dropout(dropout))
+            in_features = hidden_size
+
+        # Add output layer
+        modules.append(nn.Linear(hidden_size, n_classes))
+
+        # Combine all modules into a single sequential model
+        self.model = nn.Sequential(*modules)
 
     def forward(self, x, **kwargs):
         """
         x (batch_size x n_features): a batch of training examples
-
-        This method needs to perform all the computation needed to compute
-        the output logits from x. This will include using various hidden
-        layers, pointwise nonlinear functions, and dropout.
         """
-        raise NotImplementedError
+        # Forward pass through the sequential model
+        return self.model(x)
 
 
 def train_batch(X, y, model, optimizer, criterion, **kwargs):
     """
     X (n_examples x n_features)
     y (n_examples): gold labels
-    model: a PyTorch defined model
-    optimizer: optimizer used in gradient step
-    criterion: loss function
-
-    To train a batch, the model needs to predict outputs for X, compute the
-    loss between these predictions and the "gold" labels y using the criterion,
-    and compute the gradient of the loss with respect to the model parameters.
-
-    Check out https://pytorch.org/docs/stable/optim.html for examples of how
-    to use an optimizer object to update the parameters.
-
-    This function should return the loss (tip: call loss.item()) to get the
-    loss as a numerical value that is not part of the computation graph.
     """
-    raise NotImplementedError
+    # Zero the gradients before running the backward pass.
+    optimizer.zero_grad()
+
+    # Forward pass: Compute predicted y by passing X to the model
+    y_hat = model(X)
+
+    # Compute and print loss
+    loss = criterion(y_hat, y)
+
+    # Backward pass: compute gradient of the loss with respect to model parameters
+    loss.backward()
+
+    # Calling the step function on an Optimizer makes an update to its parameters
+    optimizer.step()
+
+    return loss.item()
 
 
 def predict(model, X):
@@ -140,6 +140,7 @@ def plot(epochs, plottables, name='', ylim=None):
 
 
 def main():
+    start_time = time.time()
     parser = argparse.ArgumentParser()
     parser.add_argument('model',
                         choices=['logistic_regression', 'mlp'],
@@ -251,6 +252,8 @@ def main():
     accuracy = { "Valid Accuracy": valid_accs }
     plot(epochs, accuracy, name=f'{opt.model}-validation-accuracy-{config}', ylim=(0., 1.))
 
+    stop_time = time.time()
+    print(f"------ Elapsed time: {stop_time - start_time} seconds ------")
 
 if __name__ == '__main__':
     main()
