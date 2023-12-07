@@ -105,119 +105,114 @@ class LogisticRegression(LinearModel):
         self.W -= learning_rate * gradient
 
 
+# Q1.2b
 class MLP(object):
-    # Q3.2b. This MLP skeleton code allows the MLP to be used in place of the
-    # linear models with no changes to the training loop or evaluation code
-    # in main().
     def __init__(self, n_classes, n_features, hidden_size):
-        mu = 0.1
-        sigma = 0.01
+        mu, sigma = 0.1, 0.1  # Mean and standard deviation for weight initialization
 
-        self.W1 = np.random.normal(mu, sigma, (n_features, hidden_size))
+        # Initialize weights and biases for the hidden layer
+        self.W1 = np.random.normal(mu, sigma, (hidden_size, n_features))
         self.b1 = np.zeros(hidden_size)
 
-        self.W2 = np.random.normal(mu, sigma, (hidden_size, n_classes))
+        # Initialize weights and biases for the output layer
+        self.W2 = np.random.normal(mu, sigma, (n_classes, hidden_size))
         self.b2 = np.zeros(n_classes)
 
     @staticmethod
-    def relu(Z):
-        return np.maximum(0, Z)
+    def relu(z):
+        # ReLU activation function
+        return np.maximum(0, z)
 
     @staticmethod
-    def softmax(Z):
-        expZ = np.exp(Z - np.max(Z, axis=1, keepdims=True))
-        return expZ / np.sum(expZ, axis=1, keepdims=True)
+    def softmax(z):
+        # Adjusted Softmax activation function for single processing
+        exp_z = np.exp(z - np.max(z))
+        return exp_z / np.sum(exp_z)
 
-    def forward_pass(self, X):
-        Z1 = np.dot(X, self.W1) + self.b1
-        A1 = self.relu(Z1)
+    def forward_pass(self, x_i):
+        # Forward Pass function for single processing
+        # Compute activations for the hidden layer
+        z1_i = np.dot(self.W1, x_i) + self.b1
+        a1_i = self.relu(z1_i)
 
-        Z2 = np.dot(A1, self.W2) + self.b2
-        A2 = self.softmax(Z2)
+        # Compute activations for the output layer
+        z2_i = np.dot(self.W2, a1_i) + self.b2
+        a2_i = self.softmax(z2_i)
+        return a1_i, a2_i
 
-        return A1, A2
+    def forward_pass_batch(self, X):
+        # Forward Pass function for batch processing
+        # Compute activations for the hidden layer
+        z1 = np.dot(X, self.W1.T) + self.b1
+        a1 = self.relu(z1)
+
+        # Compute activations for the output layer
+        z2 = np.dot(a1, self.W2.T) + self.b2
+        a2 = self.softmax(z2)
+        return a1, a2
 
     def predict(self, X):
-        _, A2 = self.forward_pass(X)
-        return np.argmax(A2, axis=1)
+        # Predict class labels for a batch of inputs
+        _, a2 = self.forward_pass_batch(X)
+        return np.argmax(a2, axis=1)
 
     def evaluate(self, X, y):
+        """
+        X (n_examples x n_features):
+        y (n_examples): gold labels
+        """
         y_hat = self.predict(X)
         n_correct = (y == y_hat).sum()
         n_possible = y.shape[0]
         return n_correct / n_possible
 
-    @staticmethod
-    def cross_entropy_loss(y_hat, y):
-        y_one_hot = np.zeros_like(y_hat)
-        y_one_hot[np.arange(len(y)), y] = 1
+    def backward_pass(self, x_i, y_i, a1_i, a2_i, learning_rate):
+        # Convert y to one-hot encoding
+        y_one_hot = np.zeros_like(a2_i)
+        y_one_hot[y_i] = 1
 
-        loss = -np.sum(y_one_hot * np.log(y_hat + 1e-9)) / len(y)
-        return loss
+        # Compute gradients for the output layer
+        dZ2 = a2_i - y_one_hot
+        dW2 = np.outer(dZ2, a1_i)
+        db2 = np.sum(dZ2)
 
-    def backpropagation(self, X, y, A1, A2):
-        dZ2 = A2
-        dZ2[np.arange(len(y)), y] -= 1
-        dZ2 /= len(y)
+        # Compute gradients for the hidden layer
+        dA1 = np.dot(dZ2, self.W2)
+        dZ1 = dA1 * (a1_i > 0)  # Derivative of ReLU
+        dW1 = np.outer(dZ1, x_i)
+        db1 = np.sum(dZ1)
 
-        dW2 = np.dot(A1.T, dZ2)
-        db2 = np.sum(dZ2, axis=0)
-
-        dA1 = np.dot(dZ2, self.W2.T)
-        dZ1 = dA1 * (A1 > 0)
-
-        dW1 = np.dot(X.T, dZ1)
-        db1 = np.sum(dZ1, axis=0)
-
-        return dW1, db1, dW2, db2
-
-    def train_epoch(self, X, y, learning_rate=0.001, batch_size=1):
-        n_samples = X.shape[0]
-        indices = np.arange(n_samples)
-        np.random.shuffle(indices)  # Shuffle the indices to ensure random batches
-
-        total_loss = 0
-
-        for start_idx in range(0, n_samples, batch_size):
-            end_idx = min(start_idx + batch_size, n_samples)
-            batch_indices = indices[start_idx:end_idx]
-
-            X_batch = X[batch_indices]
-            y_batch = y[batch_indices]
-
-            # Forward pass
-            A1, A2 = self.forward_pass(X_batch)
-
-            # Compute loss
-            loss = self.cross_entropy_loss(A2, y_batch)
-            total_loss += loss * (end_idx - start_idx)
-
-            # Backpropagation
-            dW1, db1, dW2, db2 = self.backpropagation(X_batch, y_batch, A1, A2)
-
-            # Update weights and biases
-            self.W1 -= learning_rate * dW1
-            self.b1 -= learning_rate * db1
-            self.W2 -= learning_rate * dW2
-            self.b2 -= learning_rate * db2
-
-        average_loss = total_loss / n_samples
-        return average_loss
-
-    """
-    def train_epoch(self, X, y, learning_rate=0.001):
-        A1, A2 = self.forward_pass(X)
-        loss = self.cross_entropy_loss(A2, y)
-
-        dW1, db1, dW2, db2 = self.backpropagation(X, y, A1, A2)
-
+        # Update weights and biases
         self.W1 -= learning_rate * dW1
         self.b1 -= learning_rate * db1
         self.W2 -= learning_rate * dW2
         self.b2 -= learning_rate * db2
 
+        # Compute and return the loss
+        loss = -np.sum(y_one_hot * np.log(a2_i + 1e-8))
         return loss
-    """
+
+    def train_epoch(self, X, y, learning_rate=0.001):
+        # Shuffle the dataset
+        num_examples = X.shape[0]
+        indices = np.arange(num_examples)
+        np.random.shuffle(indices)
+        X = X[indices]
+        y = y[indices]
+
+        total_loss = 0
+
+        # Stochastic gradient descent by processing each example individually
+        for x_i, y_i in zip(X, y):
+            # Forward pass for a single example
+            a1_i, a2_i = self.forward_pass(x_i)
+
+            # Backward pass and update weights for a single example
+            loss = self.backward_pass(x_i, y_i, a1_i, a2_i, learning_rate)
+            total_loss += loss
+
+        # Return average loss over the epoch
+        return total_loss / num_examples
 
 
 def plot(epochs, train_accs, val_accs):
@@ -227,6 +222,7 @@ def plot(epochs, train_accs, val_accs):
     plt.plot(epochs, val_accs, label='validation')
     plt.legend()
     plt.show()
+
 
 def plot_loss(epochs, loss):
     plt.xlabel('Epoch')
@@ -315,3 +311,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

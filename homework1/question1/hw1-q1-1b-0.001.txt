@@ -1,4 +1,4 @@
-python hw1-q1-vicente.py logistic_regression -epochs 50 -learning_rate 0.001
+(apdei) PS C:\Users\Admin\OneDrive\Documents\IST\ano6\APdei\project> python hw1-q1.py logistic_regression -epochs 50 -learning_rate 0.001
 Training epoch 1
 train acc: 0.6094 | val acc: 0.6067
 Training epoch 2
@@ -100,3 +100,4 @@ train acc: 0.6623 | val acc: 0.6627
 Training epoch 50
 train acc: 0.6625 | val acc: 0.6639
 Final test acc: 0.5936
+(apdei) PS C:\Users\Admin\OneDrive\Documents\IST\ano6\APdei\project>

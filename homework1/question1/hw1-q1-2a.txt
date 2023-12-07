@@ -1,0 +1,30 @@
+The claim is generally true, and here's the justification for each part:
+
+
+[1] Expressiveness of Logistic Regression vs. Multi-Layer Perceptron (MLP):
+
+Logistic Regression: This is a linear model that uses a linear combination of input features (in this case, pixel values)
+to make predictions. Its decision boundary is a hyperplane in the feature space. Logistic regression is less expressive
+because it cannot model complex relationships or interactions between features without manual feature engineering.
+
+MLP with ReLU Activations: An MLP, especially with non-linear activation functions like ReLU (Rectified Linear Unit), is
+capable of learning non-linear relationships between features. This is due to the multiple layers and non-linear activations,
+which allow the network to learn complex patterns and interactions in the data. Therefore, an MLP is more expressive and
+can model more complex decision boundaries compared to logistic regression.
+
+[2] Training Complexity and Convexity:
+
+Logistic Regression: The optimization problem for training a logistic regression model is convex. This means that there
+is a single global minimum to which gradient descent methods are guaranteed to converge, given a suitable learning rate.
+This makes the training process of logistic regression models relatively straightforward and predictable.
+
+MLP with ReLU Activations: Training an MLP is a non-convex optimization problem due to the non-linear activation functions
+and multiple layers. This introduces challenges like local minima, saddle points, and plateaus, making the training process
+more complex. There is no guarantee that gradient descent methods will find the global minimum. The training process involves
+careful tuning of hyperparameters (like learning rate, network architecture, initialization methods, etc.) and can be more
+computationally intensive.
+
+
+In summary, while an MLP with ReLU activations is more expressive and can model more complex relationships in data than
+logistic regression, it is also more challenging to train due to the non-convex nature of the optimization problem. In
+contrast, logistic regression, being a simpler and convex model, is easier to train but less expressive.
