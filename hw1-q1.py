@@ -69,19 +69,44 @@ class LogisticRegression(LinearModel):
 
 
 class MLP(object):
-    # Q3.2b. This MLP skeleton code allows the MLP to be used in place of the
-    # linear models with no changes to the training loop or evaluation code
-    # in main().
+
     def __init__(self, n_classes, n_features, hidden_size):
+
         # Initialize an MLP with a single hidden layer.
         self.mu_W = 0.1
         self.sigma_W = 0.01
-        
-        # Separating the weights for simplicity, since this MLP is restricted to one hidden layer 
-        self.W_1 = np.random.normal(self.mu_W, self.sigma_W, (n_features,hidden_size))
-        self.b_1 = np.random.normal(self.mu_W, self.sigma_W, hidden_size)
-        self.W_2 = np.random.normal(self.mu_W, self.sigma_W, (hidden_size,n_classes))
-        self.b_2 = np.random.normal(self.mu_W, self.sigma_W, n_classes)
+        self.n_classes = n_classes
+        self.n_features = n_features
+        self.hidden_size = hidden_size
+
+        self.W1 = np.random.normal(self.mu_W, self.sigma_W, (hidden_size, n_features)) # (output x input)
+        self.b1 = np.random.normal(self.mu_W, self.sigma_W, hidden_size) # (output,)
+
+        self.W2 = np.random.normal(self.mu_W, self.sigma_W, (n_classes, hidden_size))
+        self.b2 = np.random.normal(self.mu_W, self.sigma_W, n_classes)
+
+    
+    def relu(self, X):
+        return np.maximum(0, X)
+    
+    def softmax(self, X):
+        """
+        Apply the softmax function to each row of the array.
+        Use for array with (n_examples x n_classes)
+        """
+        e_x = np.exp(X - np.max(X, axis=1).reshape(-1, 1))
+        return e_x / e_x.sum(axis=1).reshape(-1, 1)
+    
+    def assert_shape(self, arr, expected_shape):
+        """
+        Asserts that a numpy array has a specific shape.
+        Args:
+        arr (numpy.ndarray): A numpy array.
+        expected_shape (tuple): The expected shape of the array.
+        Raises:
+        AssertionError: If the shape of the array does not match the expected shape.
+        """
+        assert arr.shape == expected_shape, f"Expected shape {expected_shape}, but got {arr.shape}"
 
     def predict(self, X):
         """
@@ -94,21 +119,19 @@ class MLP(object):
         # Compute the forward pass of the network. At prediction time, there is
         # no need to save the values of hidden nodes, whereas this is required
         # at training time.
-        y_hat = []
-        for xi in X: # for each test object. There is probably a parallelized way of doing this
-            h0 = xi
-            
-            z1 = self.W_1.dot(h0) + self.b_1 # I don't know if this works as intended
-            h1 = np.maximum(0, z1)
-            
-            z2 = self.W_2.dot(h1) + self.b_2
-            p = np.exp(z2) / sum(np.exp(z2))
-
-            y_hat.append(np.argmax(p))
+        z1 = np.dot(X, self.W1.T) + self.b1 
+        h1 = self.relu(z1)
         
-        return np.array(y_hat)
+        z2 = np.dot(h1, self.W2.T) + self.b2
+        y_hat = self.softmax(z2)
 
+        # Testing if the sum of each example is equal to one
+        np.testing.assert_allclose(y_hat.sum(axis=1), np.ones(y_hat.shape[0]), rtol=1e-5)
 
+        # Testing shape
+        self.assert_shape(y_hat, (X.shape[0], self.n_classes))  # This should pass without raising an AssertionError
+
+        return y_hat # n_examples x n_classes
 
     def evaluate(self, X, y):
         """
