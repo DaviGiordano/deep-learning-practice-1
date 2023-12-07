@@ -1,0 +1,23 @@
+To demonstrate that the specified Boolean function cannot generally be computed with a single perceptron, we can consider
+a simple counter-example. Recall that a single perceptron can only compute linearly separable functions. A function is
+linearly separable if there exists a hyperplane that can separate the input space into two parts, each corresponding to
+one of the output classes.
+
+Let's consider a specific case of the Boolean function described, with D = 2, A = 0, and B = 0. In this case, the function
+outputs 1 if the sum of the two variables is 0, and -1 otherwise. The input space consists of four points:
+{(-1, -1), (-1, 1), (1, -1), (1, 1)}, corresponding to all possible combinations of the two Boolean variables.
+
+For these inputs, the function outputs are as follows:
+- f(-1, -1) = -1 (sum is -2)
+- f(-1, 1) = 1 (sum is 0)
+- f(1, -1) = 1 (sum is 0)
+- f(1, 1) = -1 (sum is 2)
+
+If we try to plot these points in a two-dimensional space, where each axis represents one of the variables, we'll see
+that there is no straight line (hyperplane in 2D) that can separate the points with output 1 from those with output -1.
+The points (-1, 1) and (1, -1) would be on one side of the line, and the points (-1, -1) and (1, 1) would be on the other
+side. However, this does not correspond to the correct classification according to the function f.
+
+Since there is no linear separator for this function, a single perceptron, which can only represent linear decision
+boundaries, cannot compute this function. This example demonstrates that the given Boolean function cannot generally be
+computed with a single perceptron, as it is not linearly separable in all cases.
