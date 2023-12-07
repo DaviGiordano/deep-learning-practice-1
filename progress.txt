@@ -1,8 +1,8 @@
 Question 1
 [X] 1a
 [X] 1b
-[] 2a
-[ ] 2b
+[X] 2a
+[X] 2b
 Question 2
 [ ] 1
 [ ] 2a

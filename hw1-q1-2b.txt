@@ -1,0 +1,43 @@
+(apdei) PS C:\Users\Admin\OneDrive\Documents\IST\ano6\APdei\project> python hw1-q1.py mlp
+Training epoch 1
+loss: 2.0375 | train acc: 0.4814 | val acc: 0.4851
+Training epoch 2
+loss: 1.2612 | train acc: 0.5221 | val acc: 0.5228
+Training epoch 3
+loss: 1.1650 | train acc: 0.5806 | val acc: 0.5812
+Training epoch 4
+loss: 1.1082 | train acc: 0.5976 | val acc: 0.6011
+Training epoch 5
+loss: 1.0854 | train acc: 0.6161 | val acc: 0.6155
+Training epoch 6
+loss: 1.0713 | train acc: 0.5944 | val acc: 0.5878
+Training epoch 7
+loss: 1.0643 | train acc: 0.6010 | val acc: 0.5966
+Training epoch 8
+loss: 1.0605 | train acc: 0.6233 | val acc: 0.6224
+Training epoch 9
+loss: 1.0549 | train acc: 0.5916 | val acc: 0.5909
+Training epoch 10
+loss: 1.0536 | train acc: 0.2921 | val acc: 0.2891
+Training epoch 11
+loss: 1.0477 | train acc: 0.6079 | val acc: 0.6051
+Training epoch 12
+loss: 1.0457 | train acc: 0.6056 | val acc: 0.6042
+Training epoch 13
+loss: 1.0419 | train acc: 0.6301 | val acc: 0.6295
+Training epoch 14
+loss: 1.0403 | train acc: 0.6319 | val acc: 0.6299
+Training epoch 15
+loss: 1.0384 | train acc: 0.6313 | val acc: 0.6287
+Training epoch 16
+loss: 1.0359 | train acc: 0.6322 | val acc: 0.6308
+Training epoch 17
+loss: 1.0323 | train acc: 0.5693 | val acc: 0.5724
+Training epoch 18
+loss: 1.0317 | train acc: 0.6329 | val acc: 0.6316
+Training epoch 19
+loss: 1.0282 | train acc: 0.6223 | val acc: 0.6238
+Training epoch 20
+loss: 1.0255 | train acc: 0.6324 | val acc: 0.6300
+Final test acc: 0.6352
+(apdei) PS C:\Users\Admin\OneDrive\Documents\IST\ano6\APdei\project>

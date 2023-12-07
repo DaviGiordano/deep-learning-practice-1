@@ -46,11 +46,23 @@ class Perceptron(LinearModel):
         other arguments are ignored
         """
         # Q1.1a
-        y_hat = np.argmax(self.W.dot(x_i))
-        if y_hat != y_i:
-            self.W[y_i, :] += x_i
-            self.W[y_hat, :] -= x_i
-        
+
+        # Predict the class label for the input example x_i by finding the class
+        # with the highest score. The score for each class is computed as the dot
+        # product of the weights (self.W) and the input features (x_i).
+        y_hat_i = np.argmax(np.dot(self.W, x_i))
+
+        # Check if the predicted class label (y_hat_i) is different from the true
+        # class label (y_i). If they are different, update the weights.
+        if y_hat_i != y_i:
+            # For the true class label (y_i), increase the weights by x_i. This makes
+            # it more likely that a similar input will be classified as y_i in the future.
+            self.W[y_i] += x_i
+
+            # For the incorrectly predicted class label (y_hat_i), decrease the weights by x_i.
+            # This makes it less likely that a similar input will be misclassified as y_hat_i in the future.
+            self.W[y_hat_i] -= x_i
+
 
 class LogisticRegression(LinearModel):
     def update_weight(self, x_i, y_i, learning_rate=0.001):
@@ -59,105 +71,149 @@ class LogisticRegression(LinearModel):
         y_i: the gold label for that example
         learning_rate (float): keep it at the default value for your plots
         """
-        label_scores = np.expand_dims(self.W.dot(x_i), axis=1)
-        y_one_hot = np.zeros((np.size(self.W, 0), 1))
+        # Q1.1b
+
+        # Compute the raw scores for each class by multiplying the weight matrix (self.W)
+        # with the input feature vector (x_i).
+        scores = np.dot(self.W, x_i)
+
+        # Apply the softmax function to the scores to convert them into probabilities.
+        # Subtracting the max score from each score for numerical stability to prevent
+        # overflow in the exponential calculation.
+        exp_scores = np.exp(scores - np.max(scores))
+
+        # Normalize the exponentiated scores to get probabilities. This is done by
+        # dividing each exponentiated score by the sum of all exponentiated scores.
+        probabilities = exp_scores / np.sum(exp_scores)
+
+        # Create a one-hot encoded vector for the true class label (y_i). This vector
+        # has zeros in all positions except for the position corresponding to the true
+        # class, which is set to 1.
+        y_one_hot = np.zeros(self.W.shape[0])
         y_one_hot[y_i] = 1
 
-        label_probabilities = np.exp(label_scores) / np.sum(np.exp(label_scores))
+        # Compute the gradient of the loss with respect to the weights. The gradient
+        # is calculated as the outer product of the difference between the predicted
+        # probabilities and the one-hot encoded true label vector with the input
+        # feature vector (x_i). This results in a matrix where each column represents
+        # the gradient for each class.
+        gradient = np.outer(probabilities - y_one_hot, x_i)
 
-        self.W = self.W + learning_rate * (y_one_hot - label_probabilities).dot(np.expand_dims(x_i, axis = 1).T)
+        # Update the weights by subtracting the product of the learning rate and the
+        # gradient from the current weights. This step adjusts the weights in the
+        # direction that reduces the loss for the current training example.
+        self.W -= learning_rate * gradient
 
 
+# Q1.2b
 class MLP(object):
-    # Q3.2b. This MLP skeleton code allows the MLP to be used in place of the
-    # linear models with no changes to the training loop or evaluation code
-    # in main().
     def __init__(self, n_classes, n_features, hidden_size):
-        # Initialize an MLP with a single hidden layer.
-        self.mu_W = 0.1
-        self.sigma_W = 0.01
-        
-        # Separating the weights for simplicity, since this MLP is restricted to one hidden layer 
-        self.W_1 = np.random.normal(self.mu_W, self.sigma_W, (n_features,hidden_size))
-        self.b_1 = np.random.normal(self.mu_W, self.sigma_W, hidden_size)
-        self.W_2 = np.random.normal(self.mu_W, self.sigma_W, (hidden_size,n_classes))
-        self.b_2 = np.random.normal(self.mu_W, self.sigma_W, n_classes)
+        mu, sigma = 0.1, 0.1  # Mean and standard deviation for weight initialization
+
+        # Initialize weights and biases for the hidden layer
+        self.W1 = np.random.normal(mu, sigma, (hidden_size, n_features))
+        self.b1 = np.zeros(hidden_size)
+
+        # Initialize weights and biases for the output layer
+        self.W2 = np.random.normal(mu, sigma, (n_classes, hidden_size))
+        self.b2 = np.zeros(n_classes)
+
+    @staticmethod
+    def relu(z):
+        # ReLU activation function
+        return np.maximum(0, z)
+
+    @staticmethod
+    def softmax(z):
+        # Adjusted Softmax activation function for single processing
+        exp_z = np.exp(z - np.max(z))
+        return exp_z / np.sum(exp_z)
+
+    def forward_pass(self, x_i):
+        # Forward Pass function for single processing
+        # Compute activations for the hidden layer
+        z1_i = np.dot(self.W1, x_i) + self.b1
+        a1_i = self.relu(z1_i)
+
+        # Compute activations for the output layer
+        z2_i = np.dot(self.W2, a1_i) + self.b2
+        a2_i = self.softmax(z2_i)
+        return a1_i, a2_i
+
+    def forward_pass_batch(self, X):
+        # Forward Pass function for batch processing
+        # Compute activations for the hidden layer
+        z1 = np.dot(X, self.W1.T) + self.b1
+        a1 = self.relu(z1)
+
+        # Compute activations for the output layer
+        z2 = np.dot(a1, self.W2.T) + self.b2
+        a2 = self.softmax(z2)
+        return a1, a2
 
     def predict(self, X):
-        """
-        Input:
-        X test examples (n_examples x n_features)
-        
-        Ouput:
-        Predicted class y_hat of each training example (n_examples)
-        """
-        # Compute the forward pass of the network. At prediction time, there is
-        # no need to save the values of hidden nodes, whereas this is required
-        # at training time.
-        y_hat = []
-        for xi in X: # for each test object. There is probably a parallelized way of doing this
-            h0 = xi
-            
-            z1 = self.W_1.dot(h0) + self.b_1 # I don't know if this works as intended
-            h1 = np.maximum(0, z1)
-            
-            z2 = self.W_2.dot(h1) + self.b_2
-            p = np.exp(z2) / sum(np.exp(z2))
-
-            y_hat.append(np.argmax(p))
-        
-        return np.array(y_hat)
-
-
+        # Predict class labels for a batch of inputs
+        _, a2 = self.forward_pass_batch(X)
+        return np.argmax(a2, axis=1)
 
     def evaluate(self, X, y):
         """
-        X (n_examples x n_features)
+        X (n_examples x n_features):
         y (n_examples): gold labels
         """
-        # Identical to LinearModel.evaluate()
         y_hat = self.predict(X)
         n_correct = (y == y_hat).sum()
         n_possible = y.shape[0]
         return n_correct / n_possible
 
+    def backward_pass(self, x_i, y_i, a1_i, a2_i, learning_rate):
+        # Convert y to one-hot encoding
+        y_one_hot = np.zeros_like(a2_i)
+        y_one_hot[y_i] = 1
+
+        # Compute gradients for the output layer
+        dZ2 = a2_i - y_one_hot
+        dW2 = np.outer(dZ2, a1_i)
+        db2 = np.sum(dZ2)
+
+        # Compute gradients for the hidden layer
+        dA1 = np.dot(dZ2, self.W2)
+        dZ1 = dA1 * (a1_i > 0)  # Derivative of ReLU
+        dW1 = np.outer(dZ1, x_i)
+        db1 = np.sum(dZ1)
+
+        # Update weights and biases
+        self.W1 -= learning_rate * dW1
+        self.b1 -= learning_rate * db1
+        self.W2 -= learning_rate * dW2
+        self.b2 -= learning_rate * db2
+
+        # Compute and return the loss
+        loss = -np.sum(y_one_hot * np.log(a2_i + 1e-8))
+        return loss
+
     def train_epoch(self, X, y, learning_rate=0.001):
-        """
-        Dont forget to return the loss of the epoch.
-        """
+        # Shuffle the dataset
+        num_examples = X.shape[0]
+        indices = np.arange(num_examples)
+        np.random.shuffle(indices)
+        X = X[indices]
+        y = y[indices]
 
-        y_hat = []
-        for xi,yi in zip(X, y): # for each test object. There is probably a parallelized way of doing this
-            h0 = xi
-            
-            z1 = self.W_1.T.dot(h0) + self.b_1 # I don't know if this works as intended
-            h1 = np.maximum(0, z1)
-            
-            z2 = self.W_2.T.dot(h1) + self.b_2
-            p = np.exp(z2) / sum(np.exp(z2))
+        total_loss = 0
 
-            loss = -y.dot(np.log(p))
+        # Stochastic gradient descent by processing each example individually
+        for x_i, y_i in zip(X, y):
+            # Forward pass for a single example
+            a1_i, a2_i = self.forward_pass(x_i)
 
-            
-            grad_z2 = p - yi
-            
-            grad_W2 = grad_z2[:, None].dot(h1[:, None].T)
-            grad_b2 = grad_z2
-            
-            # !! The equation for the hidden layer must change. Here I'm using as if the activation function was the tanh
+            # Backward pass and update weights for a single example
+            loss = self.backward_pass(x_i, y_i, a1_i, a2_i, learning_rate)
+            total_loss += loss
 
-            grad_h1 = self.W_2.T.dot(grad_z2)
-            grad_z1 = grad_h1 * (1-h1**2)
+        # Return average loss over the epoch
+        return total_loss / num_examples
 
-            grad_W1 = grad_z1[:, None].dot(h0[:, None].T)
-            grad_b1 = grad_z1
-
-            self.W1 -= learning_rate*grad_W1
-            self.b1 -= learning_rate*grad_b1
-            self.W2 -= learning_rate*grad_W2
-            self.b2 -= learning_rate*grad_b2
-        
-        return loss # Returns last loss
 
 def plot(epochs, train_accs, val_accs):
     plt.xlabel('Epoch')
@@ -166,6 +222,7 @@ def plot(epochs, train_accs, val_accs):
     plt.plot(epochs, val_accs, label='validation')
     plt.legend()
     plt.show()
+
 
 def plot_loss(epochs, loss):
     plt.xlabel('Epoch')
@@ -212,7 +269,7 @@ def main():
     train_loss = []
     valid_accs = []
     train_accs = []
-    
+
     for i in epochs:
         print('Training epoch {}'.format(i))
         train_order = np.random.permutation(train_X.shape[0])
@@ -230,7 +287,7 @@ def main():
                 train_y,
                 learning_rate=opt.learning_rate
             )
-        
+
         train_accs.append(model.evaluate(train_X, train_y))
         valid_accs.append(model.evaluate(dev_X, dev_y))
         if opt.model == 'mlp':
@@ -240,11 +297,11 @@ def main():
             train_loss.append(loss)
         else:
             print('train acc: {:.4f} | val acc: {:.4f}'.format(
-                 train_accs[-1], valid_accs[-1],
+                train_accs[-1], valid_accs[-1],
             ))
     print('Final test acc: {:.4f}'.format(
         model.evaluate(test_X, test_y)
-        ))
+    ))
 
     # plot
     plot(epochs, train_accs, valid_accs)
@@ -254,3 +311,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
