@@ -1,23 +1,15 @@
-# Homework 2 - Skeleton Code
+# Homework 2 
 
-This archive contains everything you need to complete Homework 2. It contains the following files:
+[ ] Question 1 item 1
+[ ] Question 1 item 2
+[ ] Question 1 item 3
+[ ] Question 1 item 4
 
-## download_octmnist.py
+[X] Question 2 item 1
+[ ] Question 2 item 2
+[ ] Question 2 item 3
 
-Allows you to download the OCTMNIST dataset to a compressed `.npz` file, which `hw2-q2.py` can load.
-
-## utils.py
-
-Utility functions for `hw2-q2.py`
-
-## hw2-q2.py
-
-Contains skeleton code for Question 2, which covers image classification using CNNs, with implementation in torch.
-
-## hw2-q3.ipynb
-
-Contains skeleton code for Question 3, which covers a sequence-to-sequence task using RNNs and attention, with implementation in torch. We suggest using *google colab* or *kaggle* to run the notebook with GPU accelerators.
-
-## how-to-use-kaggle-tutorial.md
-
-A simple tutorial on how to run the notebook `hw2-q3.ipynb` in kaggle.
+[ ] Question 3 item 1
+[ ] Question 3 item 2
+[ ] Question 3 item 3
+[ ] Question 3 item 4

@@ -1,0 +1,10 @@
+(tecnico_sandbox) C:\Users\davig\Documents\23-24\Semester 1\Deep Learning\homework\homework2>python hw2-q2.py -epochs 15 -learning_rate 0.1 -no_maxpool
+Number of trainable parameters:  225618
+
+(tecnico_sandbox) C:\Users\davig\Documents\23-24\Semester 1\Deep Learning\homework\homework2>python hw2-q2.py -epochs 15 -learning_rate 0.1      
+Number of trainable parameters:  225618
+
+Both models have the same number of parameters
+The addition or removal of pooling does not change the number of trainable parameters
+
+For Later: Analyze difference between the models to see the diff performances and think why they are different.

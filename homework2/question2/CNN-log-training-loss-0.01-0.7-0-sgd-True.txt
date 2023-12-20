@@ -1,0 +1,49 @@
+(tecnico_sandbox) C:\Users\davig\Documents\23-24\Semester 1\Deep Learning\homework\homework2>python hw2-q2.py -epochs 15 -learning_rate 0.01 -no_maxpool  
+cpu
+Training epoch 1
+Training loss: 1.1826
+Valid acc: 0.4785
+Training epoch 2
+Training loss: 1.1323
+Valid acc: 0.6077
+Training epoch 3
+Training loss: 1.0560
+Valid acc: 0.7207
+Training epoch 4
+Training loss: 0.9826
+Valid acc: 0.7616
+Training epoch 5
+Training loss: 0.9189
+Valid acc: 0.8061
+Training epoch 6
+Training loss: 0.8674
+Valid acc: 0.8117
+Training epoch 7
+Training loss: 0.8253
+Valid acc: 0.8215
+Training epoch 8
+Training loss: 0.7908
+Valid acc: 0.8308
+Training epoch 9
+Training loss: 0.7621
+Valid acc: 0.8284
+Training epoch 10
+Training loss: 0.7376
+Valid acc: 0.8365
+Training epoch 11
+Training loss: 0.7165
+Valid acc: 0.8407
+Training epoch 12
+Training loss: 0.6977
+Valid acc: 0.8442
+Training epoch 13
+Training loss: 0.6814
+Valid acc: 0.8448
+Training epoch 14
+Training loss: 0.6667
+Valid acc: 0.8433
+Training epoch 15
+Training loss: 0.6535
+Valid acc: 0.8514
+Final Test acc: 0.8261
+Number of trainable parameters:  0

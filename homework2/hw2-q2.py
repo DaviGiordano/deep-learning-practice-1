@@ -20,42 +20,61 @@ class CNN(nn.Module):
     def __init__(self, dropout_prob, no_maxpool=False):
         super(CNN, self).__init__()
         self.no_maxpool = no_maxpool
+
         if not no_maxpool:
-            # Implementation for Q2.1
-            raise NotImplementedError
+            # Q2.1 Configuration
+            self.conv1 = nn.Conv2d(in_channels=1, out_channels=8, kernel_size=3, stride=1, padding=1)
+            self.conv2 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3, stride=1, padding=0)
+            # Image size after convolutions: 6x6 (assuming initial size is 28x28)
+            fc1_input_size = 16 * 6 * 6
         else:
-            # Implementation for Q2.2
-            raise NotImplementedError
-        
-        # Implementation for Q2.1 and Q2.2
-        raise NotImplementedError
-        
+            # Q2.2 Configuration
+            self.conv1 = nn.Conv2d(in_channels=1, out_channels=8, kernel_size=3, stride=2, padding=1)
+            self.conv2 = nn.Conv2d(in_channels=8, out_channels=16, kernel_size=3, stride=2, padding=0)
+            # Image size after convolutions needs to be recalculated
+            # Size after conv1: [8, 14, 14] (stride 2 halves the size)
+            # Size after conv2: [16, 6, 6] (stride 2 and no padding)
+            fc1_input_size = 16 * 6 * 6
+
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.fc1 = nn.Linear(fc1_input_size, 320)
+        self.drop = nn.Dropout(p=dropout_prob)
+        self.fc2 = nn.Linear(320, 120)
+        self.fc3 = nn.Linear(120, 10)  # Replace 10 with the actual number of classes
+
     def forward(self, x):
-        # input should be of shape [b, c, w, h]
-        # conv and relu layers
+        # Reshape the input
+        x = x.view(-1, 1, 28, 28)
 
-        # max-pool layer if using it
-        if not self.no_maxpool:
-            raise NotImplementedError
-        
-        # conv and relu layers
-        
+        # Convolution and relu 1
+        x = F.relu(self.conv1(x))
 
-        # max-pool layer if using it
+        # Max-pooling 1 (applied only if no_maxpool is False)
         if not self.no_maxpool:
-            raise NotImplementedError
+            x = self.pool(x)
         
-        # prep for fully connected layer + relu
+        # Convolution and relu 2
+        x = F.relu(self.conv2(x))
+
+        # Max-pooling 2 (applied only if no_maxpool is False)
+        if not self.no_maxpool:
+            x = self.pool(x)
         
-        # drop out
+        # Flatten the tensor for the fully connected layer
+        x = x.view(-1, 16 * 6 * 6)
+
+        # Fully connected layers
+        x = F.relu(self.fc1(x))
         x = self.drop(x)
-
-        # second fully connected layer + relu
-        
-        # last fully connected layer
+        x = F.relu(self.fc2(x))
         x = self.fc3(x)
         
-        return F.log_softmax(x,dim=1)
+        return F.log_softmax(x, dim=1)
+
+
+
+
+
 
 def train_batch(X, y, model, optimizer, criterion, **kwargs):
     """
@@ -102,11 +121,13 @@ def plot(epochs, plottable, ylabel='', name=''):
 
 
 def get_number_trainable_params(model):
-    ## TO IMPLEMENT - REPLACE return 0
-    return 0
-
+    model_parameters_cnn = filter(lambda p: p.requires_grad, model.parameters())
+    params_cnn = sum([np.prod(p.size()) for p in model_parameters_cnn])
+    return params_cnn
 
 def main():
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    print(device)
     parser = argparse.ArgumentParser()
     parser.add_argument('-epochs', default=20, type=int,
                         help="""Number of epochs to train for. You should not
